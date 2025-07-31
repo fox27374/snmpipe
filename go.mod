@@ -1,4 +1,4 @@
-module snmp-poller
+module snmpipe
 
 go 1.24.3
 
