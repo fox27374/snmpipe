@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"sync"
+	"time"
 )
 
 const (
-	configFile  = "config.json"
-	snmpTimeout = 5
+	configFile   = "config.json"
+	pollInterval = 60
+	snmpTimeout  = 5
 )
 
 type Config struct {
@@ -56,7 +58,7 @@ type SplunkHecEvent struct {
 	Event      []PollResult `json:"event"`
 }
 
-func main() {
+func pollAndSend() {
 	dataChan := make(chan PollResult)
 	errChan := make(chan error)
 	var wg sync.WaitGroup
@@ -100,5 +102,15 @@ func main() {
 	err := sendToSplunkHec(config.Splunk, pollResults)
 	if err != nil {
 		fmt.Println(err)
+	}
+}
+
+func main() {
+	ticker := time.NewTicker(pollInterval * time.Second)
+	defer ticker.Stop()
+
+	for {
+		pollAndSend()
+		<-ticker.C
 	}
 }
