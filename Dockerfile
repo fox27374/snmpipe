@@ -25,7 +25,7 @@ COPY go.mod .
 # Fetch dependencies usinf the mod file
 # Download, verify and build
 RUN go get -d -v
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/snmpipe
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /go/bin/snmpipe
 
 # Create new container and copy compiled file
 FROM scratch
