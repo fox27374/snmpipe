@@ -20,7 +20,6 @@ COPY main.go .
 COPY helper.go .
 COPY snmp.go .
 COPY splunk.go .
-COPY go.mod .
 
 # Fetch dependencies usinf the mod file
 # Download, verify and build
