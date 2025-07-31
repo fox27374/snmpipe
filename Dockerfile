@@ -1,4 +1,5 @@
 FROM golang:alpine AS builder
+
 # Install git for go package dependencies
 RUN apk update && apk add --no-cache git
 
@@ -21,13 +22,14 @@ COPY helper.go .
 COPY snmp.go .
 COPY splunk.go .
 
-# Fetch dependencies usinf the mod file
-# Download, verify and build
-RUN go mod init && go mod tidy
+# Fetch dependencies and build the binary
+RUN go mod init snmpipe && go mod tidy
 RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /go/bin/snmpipe
 
-# Create new container and copy compiled file
+# Create new container and copy binary file
+# as well as the group and passwd file
 FROM scratch
+
 # Import the user and group files from the builder
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
