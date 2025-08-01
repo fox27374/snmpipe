@@ -1,11 +1,22 @@
 {
     "splunk": {
         "splunk_hec_url": "http://hec.example.com:8088/services/collector/event",
-        "splunk_hec_token": "xxxxxxxx-d5ce-4950-97a6-yyyyyyyyyyyy",
+        "splunk_hec_token": "xxxxxxxx-d5ce-4950-97a6-yyyyyyyy",
         "splunk_index": "idx_other",
         "splunk_sourcetype": ""
     },
-    "snmp": {
+    "snmp_trap": {
+        "enabled": "true",
+        "trap_port": "8162",
+        "trap_user": "",
+        "trap_auth_protocol": "sha",
+        "trap_auth_passphrase": "",
+        "trap_priv_protocol": "aes",
+        "trap_priv_passphrase": ""
+    },
+    "snmp_poll": {
+        "enabled": "true",
+        "interval": "60",
         "snmp_port": "161",
         "snmp_version": "2",
         "snmp_community": "public",
