@@ -7,64 +7,44 @@ import (
 )
 
 const (
-	configFile   = "config.json"
-	pollInterval = 60
-	snmpTimeout  = 5
+	configFile  = "config.json"
+	snmpTimeout = 5
 )
 
-type Config struct {
-	Splunk  SplunkConfig   `json:"splunk"`
-	SNMP    SNMPConfig     `json:"snmp"`
-	Devices []DeviceConfig `json:"devices"`
+var (
+	pollEnabled  = false
+	pollInterval = 60
+	trapEnabled  = false
+	trapPort     = 8162
+)
+
+func main() {
+	config, err := loadConfig()
+	if err != nil {
+		fmt.Errorf("Error loading config: %w", err)
+	}
+
+	// Start trap receiver
+	if trapEnabled {
+		trapReceiver(config.Trap)
+	}
+
+	// Start polling devices
+	if pollEnabled {
+		ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
+		defer ticker.Stop()
+		for {
+			pollAndSend(*config)
+			<-ticker.C
+		}
+	}
 }
 
-type SplunkConfig struct {
-	SplunkHecUrl     string `json:"splunk_hec_url"`
-	SplunkHectoken   string `json:"splunk_hec_token"`
-	SplunkIndex      string `json:"splunk_index"`
-	SplunkSourcetype string `json:"splunk_sourcetype"`
-}
-
-type SNMPConfig struct {
-	SNMPPort           string `json:"snmp_port"`
-	SNMPVersion        string `json:"snmp_version"`
-	SNMPCommunity      string `json:"snmp_community"`
-	SNMPUser           string `json:"snmp_user"`
-	SNMPAuthProtocol   string `json:"snmp_auth_protocol"`
-	SNMPAuthPassphrase string `json:"snmp_auth_passphrase"`
-	SNMPPrivProtocol   string `json:"snmp_priv_protocol"`
-	SNMPPrivPassphrase string `json:"snmp_priv_passphrase"`
-}
-
-type DeviceConfig struct {
-	IP                 string            `json:"ip"`
-	Name               string            `json:"name"`
-	SNMPPort           string            `json:"snmp_port"`
-	SNMPVersion        string            `json:"snmp_version"`
-	SNMPCommunity      string            `json:"snmp_community"`
-	SNMPUser           string            `json:"snmp_user"`
-	SNMPAuthProtocol   string            `json:"snmp_auth_protocol"`
-	SNMPAuthPassphrase string            `json:"snmp_auth_passphrase"`
-	SNMPPrivProtocol   string            `json:"snmp_priv_protocol"`
-	SNMPPrivPassphrase string            `json:"snmp_priv_passphrase"`
-	OIDs               map[string]string `json:"oids"`
-}
-
-type PollResult map[string]any
-
-type SplunkHecEvent struct {
-	Index      string       `json:"index"`
-	Sourcetype string       `json:"sourcetype"`
-	Event      []PollResult `json:"event"`
-}
-
-func pollAndSend() {
-	dataChan := make(chan PollResult)
+func pollAndSend(config Config) {
+	dataChan := make(chan SNMPData)
 	errChan := make(chan error)
 	var wg sync.WaitGroup
-	var pollResults []PollResult
-
-	config := loadConfig()
+	var pollResults []SNMPData
 
 	// Launch goroutines for polling
 	for _, device := range config.Devices {
@@ -99,18 +79,8 @@ func pollAndSend() {
 	}
 
 	// Send data to Splunk
-	err := sendToSplunkHec(config.Splunk, pollResults)
+	err := sendToSplunkHec(pollResults)
 	if err != nil {
 		fmt.Println(err)
-	}
-}
-
-func main() {
-	ticker := time.NewTicker(pollInterval * time.Second)
-	defer ticker.Stop()
-
-	for {
-		pollAndSend()
-		<-ticker.C
 	}
 }
