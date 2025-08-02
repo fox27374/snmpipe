@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 	"sync"
 	"time"
 )
@@ -12,35 +14,68 @@ const (
 )
 
 var (
+	config       Config
+	logger       *slog.Logger
 	pollEnabled  = false
 	pollInterval = 60
 	trapEnabled  = false
 	trapPort     = 8162
 )
 
+func init() {
+	debug := false
+	var logLevel slog.Level
+	if debug {
+		logLevel = slog.LevelDebug
+	} else {
+		logLevel = slog.LevelInfo
+	}
+
+	// Create and configure the handler.
+	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: logLevel,
+	})
+
+	// Set the global logger variable.
+	logger = slog.New(handler)
+	// You can also set it as the default logger for the entire application.
+	slog.SetDefault(logger)
+}
+
 func main() {
-	config, err := loadConfig()
+	logger.Info("Application started")
+	err := loadConfig()
 	if err != nil {
-		fmt.Errorf("Error loading config: %w", err)
+		logger.Error("Failed to load config", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	// Start trap receiver
+	logger.Info("Trap receiver", slog.Any("enabled", trapEnabled))
 	if trapEnabled {
-		trapReceiver(config.Trap)
+		logger.Info(fmt.Sprintf("Trap receiver enabled, starting on port %d", trapPort))
+		go trapReceiver(config.Trap)
 	}
 
 	// Start polling devices
+	logger.Info("Poller", slog.Any("enabled", pollEnabled))
 	if pollEnabled {
+		logger.Info(fmt.Sprintf("Device polling enabled, starting with an interval of %d seconds", pollInterval))
 		ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 		defer ticker.Stop()
 		for {
-			pollAndSend(*config)
+			pollAndSend()
 			<-ticker.C
 		}
 	}
 }
 
-func pollAndSend(config Config) {
+// func trapAndSend() {
+// 	dataChan := make(chan SNMPData)
+// 	errChan := make(chan error)
+// }
+
+func pollAndSend() {
 	dataChan := make(chan SNMPData)
 	errChan := make(chan error)
 	var wg sync.WaitGroup
@@ -66,7 +101,7 @@ func pollAndSend(config Config) {
 	go func() {
 		for err := range errChan {
 			if err != nil {
-				fmt.Printf("Received error: %v\n", err)
+				logger.Error("Error received from go routine", slog.Any("error", err))
 			}
 		}
 	}()
