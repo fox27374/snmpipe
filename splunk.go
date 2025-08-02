@@ -10,10 +10,12 @@ import (
 // Create JSON data that can be send to the Splunk HEC
 // Data has to be in a specific format in order to be processed by Splunk
 // https://docs.splunk.com/Documentation/Splunk/latest/Data/FormateventsforHTTPEventCollector
-func createHecEvent(splunk SplunkConfig, data []SNMPData) ([]byte, error) {
+func createHecEvent(data []SNMPData) ([]byte, error) {
+	splunk := config.Splunk
 	var splunkHecEvent SplunkHecEvent
 
 	// Add additional Splunk data if configured in the config file
+	fmt.Println(splunk.SplunkHecUrl)
 	if splunk.SplunkIndex != "" {
 		splunkHecEvent.Index = splunk.SplunkIndex
 	}
@@ -40,11 +42,11 @@ func createHecEvent(splunk SplunkConfig, data []SNMPData) ([]byte, error) {
 // Data is send as a POST request in a certain format
 // https://docs.splunk.com/Documentation/Splunk/latest/Data/FormateventsforHTTPEventCollector
 func sendToSplunkHec(data []SNMPData) error {
-	var splunk SplunkConfig
+	splunk := config.Splunk
 	client := &http.Client{}
 
 	// Create request data
-	jsondata, err := createHecEvent(splunk, data)
+	jsondata, err := createHecEvent(data)
 	fmt.Println(string(jsondata))
 	if err != nil {
 		return fmt.Errorf("creating request data failed: %v", err)
