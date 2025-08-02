@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"strconv"
 	"strings"
@@ -71,21 +71,24 @@ type SplunkHecEvent struct {
 // Loads the configuration from the config file
 // and sets the default values for every device
 // if the value in the device config does not exist
-func loadConfig() (*Config, error) {
-	var config Config
-	err := json.Unmarshal(readConfigFile(), &config)
+func loadConfig() error {
+	// Load config file and unmarshal it
+	configFileData, err := readConfigFile()
 	if err != nil {
-		log.Fatalf("Error unmarshaling JSON: %v", err)
-		return nil, err
+		return fmt.Errorf("cannot not read config file: %w", err)
+	}
+	err = json.Unmarshal(configFileData, &config)
+	if err != nil {
+		return fmt.Errorf("cannot unmarshal config file: %w", err)
 	}
 
 	// Check if mandatory values are set
 	// Splunk
 	if config.Splunk.SplunkHecUrl == "" {
-		log.Fatalf("Splun HEC URL is not set")
+		return fmt.Errorf("splunk HEC URL is not set")
 	}
 	if config.Splunk.SplunkHectoken == "" {
-		log.Fatalf("Splun HEC token is not set")
+		return fmt.Errorf("splunk HEC token is not set")
 	}
 
 	// Trap
@@ -93,7 +96,7 @@ func loadConfig() (*Config, error) {
 		trapEnabled = true
 	}
 	if strings.ToLower(config.Trap.Enabled) == "true" && config.Trap.TrapPort == "" {
-		log.Fatalf("Trap port is not set")
+		return fmt.Errorf("trap port is not set")
 	}
 
 	// Poll
@@ -102,16 +105,16 @@ func loadConfig() (*Config, error) {
 	}
 
 	// Convert string values from config to int
-	pollInterval, err = strconv.Atoi(config.Poll.Interval)
-	if err != nil {
-		fmt.Errorf("String to int convert: %w", err)
-		return nil, err
+	if config.Poll.Interval != "" {
+		pollInterval, err = strconv.Atoi(config.Poll.Interval)
+		if err != nil {
+			return fmt.Errorf("unable to convert poll interval string to int")
+		}
 	}
 
 	trapPort, err = strconv.Atoi(config.Trap.TrapPort)
 	if err != nil {
-		fmt.Errorf("String to int convert: %w", err)
-		return nil, err
+		return fmt.Errorf("unable to convert trap port string to int")
 	}
 
 	// Apply default values from global SNMP config to devices
@@ -144,15 +147,15 @@ func loadConfig() (*Config, error) {
 		}
 	}
 
-	return &config, nil
+	return nil
 }
 
 // Loads the configuration from the config file
-func readConfigFile() []byte {
+func readConfigFile() ([]byte, error) {
 	configData, err := os.ReadFile(configFile)
 	if err != nil {
-		log.Fatalf("Failed to read config file: %v", err)
+		return nil, fmt.Errorf("Failed to read config file", slog.Any("error", err))
 	}
 
-	return configData
+	return configData, nil
 }
