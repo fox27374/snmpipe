@@ -1,16 +1,30 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
-	"os"
 
 	g "github.com/gosnmp/gosnmp"
 )
 
-func trapReceiver(tc TrapConfig) {
+// SlogLogger is a wrapper that implements the gosnmp.Logger interface.
+type SlogLogger struct {
+	logger *slog.Logger
+}
+
+// Print implements the gosnmp.LoggerInterface.
+func (l *SlogLogger) Print(v ...interface{}) {
+	l.logger.Debug(fmt.Sprint(v...))
+}
+
+// Printf implements the gosnmp.LoggerInterface.
+func (l *SlogLogger) Printf(format string, v ...interface{}) {
+	l.logger.Debug(fmt.Sprintf(format, v...))
+}
+
+func trapReceiver(tc TrapConfig, dataChan chan<- SNMPData, errChan chan<- error) {
+	gosnmpLogger := &SlogLogger{logger: logger}
 	secParamsList := []*g.UsmSecurityParameters{
 		{
 			UserName:                 tc.TrapUser,
@@ -22,13 +36,22 @@ func trapReceiver(tc TrapConfig) {
 	}
 
 	tl := g.NewTrapListener()
-	tl.OnNewTrap = trapHandler
 
-	usmTable := g.NewSnmpV3SecurityParametersTable(g.NewLogger(log.New(os.Stdout, "", 0)))
+	// Use anon function for the trapHandler in order to pass the errorChan channel
+	tl.OnNewTrap = func(packet *g.SnmpPacket, addr *net.UDPAddr) {
+		sendData, err := trapHandler(packet, addr)
+		if err != nil {
+			errChan <- fmt.Errorf("trap handling failed: %v", err)
+		}
+		dataChan <- sendData
+	}
+
+	usmTable := g.NewSnmpV3SecurityParametersTable(g.NewLogger(gosnmpLogger))
 	for _, sp := range secParamsList {
 		err := usmTable.Add(sp.UserName, sp)
 		if err != nil {
-			usmTable.Logger.Print(err)
+			errChan <- fmt.Errorf("failed to set security parameter: %v", err)
+			return
 		}
 	}
 
@@ -37,19 +60,20 @@ func trapReceiver(tc TrapConfig) {
 		Transport:                   "udp",
 		Version:                     g.Version3, // Always using version3 for traps, only option that works with all SNMP versions simultaneously
 		SecurityModel:               g.UserSecurityModel,
-		SecurityParameters:          &g.UsmSecurityParameters{AuthoritativeEngineID: "12345"}, // Use for server's engine ID
+		SecurityParameters:          &g.UsmSecurityParameters{AuthoritativeEngineID: "snmpipe"}, // Use for server's engine ID
 		TrapSecurityParametersTable: usmTable,
 	}
 	tl.Params = gs
-	// tl.Params.Logger = g.NewLogger(log.New(os.Stdout, "", 0))
+	tl.Params.Logger = g.NewLogger(gosnmpLogger)
 
-	listenErr := tl.Listen("0.0.0.0:" + tc.TrapPort)
-	if listenErr != nil {
-		log.Panicf("error in listen: %s", listenErr)
+	// Start listener - hard blocking function
+	err := tl.Listen(trapListenAddr + ":" + tc.TrapPort)
+	if err != nil {
+		errChan <- fmt.Errorf("error creating listener: %v", err)
 	}
 }
 
-func trapHandler(packet *g.SnmpPacket, addr *net.UDPAddr) {
+func trapHandler(packet *g.SnmpPacket, addr *net.UDPAddr) (SNMPData, error) {
 	s := make(SNMPData)
 	t := make(map[string]string)
 
@@ -82,19 +106,5 @@ func trapHandler(packet *g.SnmpPacket, addr *net.UDPAddr) {
 
 	s["values"] = t
 
-	jsonData, err := json.Marshal(s)
-	if err != nil {
-		log.Printf("Error marshaling JSON: %v", err)
-		return
-	}
-
-	fmt.Println(string(jsonData))
-
-	// Put data in a slice to be compatible with the poll functions
-	sendData := []SNMPData{s}
-
-	err = sendToSplunkHec(sendData)
-	if err != nil {
-		fmt.Println(err)
-	}
+	return s, nil
 }
