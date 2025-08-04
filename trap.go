@@ -8,17 +8,21 @@ import (
 	g "github.com/gosnmp/gosnmp"
 )
 
-// SlogLogger is a wrapper that implements the gosnmp.Logger interface.
+// Implement gosnmp logger interface in order to use the projects
+// slog logger interface.
+//
+//	type LoggerInterface interface {
+//		Print(v ...interface{})
+//		Printf(format string, v ...interface{})
+//	}
 type SlogLogger struct {
 	logger *slog.Logger
 }
 
-// Print implements the gosnmp.LoggerInterface.
 func (l *SlogLogger) Print(v ...interface{}) {
 	l.logger.Debug(fmt.Sprint(v...))
 }
 
-// Printf implements the gosnmp.LoggerInterface.
 func (l *SlogLogger) Printf(format string, v ...interface{}) {
 	l.logger.Debug(fmt.Sprintf(format, v...))
 }
@@ -60,7 +64,7 @@ func trapReceiver(tc TrapConfig, dataChan chan<- SNMPData, errChan chan<- error)
 		Transport:                   "udp",
 		Version:                     g.Version3, // Always using version3 for traps, only option that works with all SNMP versions simultaneously
 		SecurityModel:               g.UserSecurityModel,
-		SecurityParameters:          &g.UsmSecurityParameters{AuthoritativeEngineID: "snmpipe"}, // Use for server's engine ID
+		SecurityParameters:          &g.UsmSecurityParameters{AuthoritativeEngineID: "snmpipe"},
 		TrapSecurityParametersTable: usmTable,
 	}
 	tl.Params = gs
