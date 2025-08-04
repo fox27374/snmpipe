@@ -16,6 +16,8 @@ import (
 // Supports SNMP version 1, 2c and 3 as well as different AUTH and PRIV protocols
 // Poll results and errors are passed into separate channels
 func pollDevice(device DeviceConfig, dataChan chan<- SNMPData, errChan chan<- error) {
+	// TODO: implement SNMP v3 auth and priv types based on the config
+	// currently hardcoded to SHA and AES
 
 	p := make(SNMPData)
 	o := make(map[string]any)
@@ -25,7 +27,7 @@ func pollDevice(device DeviceConfig, dataChan chan<- SNMPData, errChan chan<- er
 
 	snmpPort, portErr := strconv.Atoi(device.SNMPPort)
 	if portErr != nil {
-		errChan <- fmt.Errorf("INVALID SNMP-PORT %w FOR %s (IP: %s)", portErr, device.Name, device.IP)
+		errChan <- fmt.Errorf("invalid smtp port %w for %s (IP: %s)", portErr, device.Name, device.IP)
 		return
 	}
 
@@ -50,14 +52,16 @@ func pollDevice(device DeviceConfig, dataChan chan<- SNMPData, errChan chan<- er
 			UserName:                 device.SNMPUser,
 			AuthenticationProtocol:   g.SHA,
 			AuthenticationPassphrase: device.SNMPAuthPassphrase,
-			PrivacyProtocol:          g.DES,
+			PrivacyProtocol:          g.AES,
 			PrivacyPassphrase:        device.SNMPPrivPassphrase,
 		}
 	default:
-		errChan <- fmt.Errorf("SNMP-VERSION %v NOT SUPPORTED FOR %s (IP: %s)", device.SNMPVersion, device.Name, device.IP)
+		errChan <- fmt.Errorf("snmp version %v not supported for %s (IP: %s)", device.SNMPVersion, device.Name, device.IP)
 		dataChan <- nil
 		return
 	}
+
+	// TODO: Debug output of SNMP parameters
 
 	// Try connecting to the device
 	ConnErr := params.Connect()
