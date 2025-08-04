@@ -19,7 +19,8 @@ RUN adduser \
 WORKDIR $GOPATH/src/snmpipe/
 COPY main.go .
 COPY helper.go .
-COPY snmp.go .
+COPY poll.go .
+COPY trap.go .
 COPY splunk.go .
 
 # Fetch dependencies and build the binary
