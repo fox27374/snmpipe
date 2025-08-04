@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log/slog"
 	"maps"
 	"slices"
 	"strconv"
+	"sync"
 	"time"
 
 	g "github.com/gosnmp/gosnmp"
@@ -87,4 +89,54 @@ func pollDevice(device DeviceConfig, dataChan chan<- SNMPData, errChan chan<- er
 
 	errChan <- nil
 	dataChan <- p
+}
+
+func pollAndSend() error {
+	var wg sync.WaitGroup
+	dataChan := make(chan SNMPData, len(config.Devices))
+	errChan := make(chan error, len(config.Devices))
+
+	// Launch goroutines for polling
+	for _, device := range config.Devices {
+		wg.Add(1)
+		go func(d DeviceConfig) {
+			defer wg.Done()
+			pollDevice(d, dataChan, errChan)
+		}(device)
+	}
+
+	// Close channels once all workers are done
+	wg.Wait()
+	close(dataChan)
+	close(errChan)
+
+	// Push data from channels to data/error slices
+	var pollResults []SNMPData
+	var pollErrors []error
+
+	for data := range dataChan {
+		if data != nil {
+			pollResults = append(pollResults, data)
+		}
+	}
+	for err := range errChan {
+		if err != nil {
+			pollErrors = append(pollErrors, err)
+		}
+	}
+
+	// Log all collected errors
+	for _, err := range pollErrors {
+		logger.Error("Polling error", slog.Any("error", err))
+	}
+
+	logger.Debug("Poll data received", slog.Any("data", pollResults))
+
+	// Send data to Splunk
+	err := sendToSplunkHec(pollResults)
+	if err != nil {
+		return fmt.Errorf("sending data to Splunk failed: %w", err)
+	}
+
+	return nil
 }
