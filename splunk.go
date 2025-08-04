@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
@@ -15,7 +16,6 @@ func createHecEvent(data []SNMPData) ([]byte, error) {
 	var splunkHecEvent SplunkHecEvent
 
 	// Add additional Splunk data if configured in the config file
-	fmt.Println(splunk.SplunkHecUrl)
 	if splunk.SplunkIndex != "" {
 		splunkHecEvent.Index = splunk.SplunkIndex
 	}
@@ -47,7 +47,7 @@ func sendToSplunkHec(data []SNMPData) error {
 
 	// Create request data
 	jsondata, err := createHecEvent(data)
-	fmt.Println(string(jsondata))
+	logger.Debug("Data for HEC prepared", slog.String("data", string(jsondata)))
 	if err != nil {
 		return fmt.Errorf("creating request data failed: %v", err)
 	}
@@ -60,6 +60,8 @@ func sendToSplunkHec(data []SNMPData) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Splunk "+splunk.SplunkHectoken)
 
+	logger.Debug("splunk HEC url", slog.String("url", splunk.SplunkHecUrl))
+	logger.Debug("splunk authorization token", slog.String("token", splunk.SplunkHectoken))
 	resp, err := client.Do(req)
 	if err != nil {
 		return fmt.Errorf("HTTP request failed: %v", err)
