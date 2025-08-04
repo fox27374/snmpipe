@@ -27,15 +27,20 @@ var (
 
 func init() {
 	var logLevel slog.Level
+	var addSource bool
+
 	if debug {
 		logLevel = slog.LevelDebug
+		addSource = true
 	} else {
 		logLevel = slog.LevelInfo
+		addSource = false
 	}
 
 	// Create and configure log handler
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: logLevel,
+		Level:     logLevel,
+		AddSource: addSource,
 	})
 
 	// Set the global logger variable
