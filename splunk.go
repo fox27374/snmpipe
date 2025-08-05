@@ -43,7 +43,24 @@ func createHecEvent(data []SNMPData) ([]byte, error) {
 // https://docs.splunk.com/Documentation/Splunk/latest/Data/FormateventsforHTTPEventCollector
 func sendToSplunkHec(data []SNMPData) error {
 	splunk := config.Splunk
-	client := &http.Client{}
+
+	// Check if http or https is used and configure the http client accordingly
+	u, err := url.Parse(splunk.SplunkHecUrl)
+	if err != nil {
+        return fmt.Errorf("Error parsing URL:", err)
+    }
+
+	if u.Scheme == "https" {
+		// Disable certificate check
+        tr := &http.Transport{
+        	TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+    	}
+		client := &http.Client{Transport: tr}
+    } else if u.Scheme == "http" {
+        client := &http.Client{}
+    } else {
+        return fmt.Errorf(httpURL, "has an unknown scheme:", u.Scheme)
+    }
 
 	// Create request data
 	jsondata, err := createHecEvent(data)
