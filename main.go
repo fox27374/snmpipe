@@ -14,8 +14,9 @@ const (
 	snmpTimeout = 5
 )
 
+// TODO: Pass debug variable as an environmental variable or set it in the config file
 var (
-	debug          = true
+	debug          = false
 	config         Config
 	logger         *slog.Logger
 	pollEnabled    = false
