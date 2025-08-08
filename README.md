@@ -121,4 +121,11 @@ podman run -d --rm --name snmpipe -v $(pwd)/config.json:/config.json -p 8162:816
 TODO
 ## Troubleshooting
 In order to turn on debug logging, the **DEBUG** environmental variable set to **true** can be passed to the application.
-
+### Binary
+```bash
+DEBUG=true go run *.go
+```
+### Container
+```bash
+podman run -d --rm --name snmpipe -e DEBUG=true -v $(pwd)/config.json:/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
+```
