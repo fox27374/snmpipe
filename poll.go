@@ -134,6 +134,7 @@ func pollAndSend() error {
 		logger.Error("Polling error", slog.Any("error", err))
 	}
 
+	logger.Info("polling finished, sending data")
 	logger.Debug("Poll data received", slog.Any("data", pollResults))
 
 	// Send data to Splunk
