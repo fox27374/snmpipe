@@ -99,8 +99,14 @@ Every device gets the settings from the **snmp_poll** configuration. These setti
 * Clone the repository
 * Rename the **config.json.template** to **config.json**
 * Adapt the settings in the config file to your needs
+* Then either run the code directly
 ```bash
 go run *.go
+```
+* Or build the binary and run it
+```bash
+go build -ldflags="-w -s" .
+./snmpipe
 ```
 ### Container
 Install [Podman](https://podman.io/docs/installation)
