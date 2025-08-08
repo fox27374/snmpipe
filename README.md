@@ -13,7 +13,7 @@ SNMP poller and trap receiver that forwards data to Splunk HEC endpoint.
 * Trap receiver and pollin modules can be enabled/disabled
 ## Limitations
 * For SNMPv3, the auth (SHA) and priv (AES) protocols are currently hardcoded
-* Only HTTP (not HTTPS) HEC endpoints are supported at the moment
+* The certificates for HTTPS HEC enspoints are ignored
 * No MIB support, devices needs to be polled with full OID path
 ## Configuration
 The configuration is done in the **config.json** file. The file has several sections for configuring Splunk, polling settings, trap receiver settings and all the devices that should be polled.
@@ -103,7 +103,16 @@ Every device gets the settings from the **snmp_poll** configuration. These setti
 go run *.go
 ```
 ### Container
+Install [Podman](https://podman.io/docs/installation)
+```bash
+podman machine init
+podman machine start
+podman buildx build --platform linux/arm64 -t snmpipe:0.2.0 .
+podman image rm $(podman images -f "dangling=true" -q)
+podman run -d --rm --name snmpipe -v $(pwd)/config.json:/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
+```
+### Kubernetes
 TODO
 ## Troubleshooting
-In the **main.go** file, set the global variable **debug = true** to get detailed log output.
+In order to turn on debug logging, the **DEBUG** environmental variable set to **true** can be passed to the application.
 
