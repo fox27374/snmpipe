@@ -27,6 +27,12 @@ var (
 )
 
 func init() {
+	// Check if the "DEBUG" environment variable is set
+	_, ok := os.LookupEnv("DEBUG")
+	if ok {
+		debug = true
+	}
+
 	var logLevel slog.Level
 	var addSource bool
 
