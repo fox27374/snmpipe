@@ -107,7 +107,7 @@ func main() {
 	for {
 		select {
 		case data := <-trapDataChan:
-			slog.Info("New trap data received", slog.Any("data", data))
+			slog.Info("New trap data received", slog.Any("host", data["ip"]))
 			s := []SNMPData{data}
 			err := sendToSplunkHec(s)
 			if err != nil {
