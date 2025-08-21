@@ -14,7 +14,6 @@ const (
 	snmpTimeout = 5
 )
 
-// TODO: Pass debug variable as an environmental variable or set it in the config file
 var (
 	debug          = false
 	config         Config
