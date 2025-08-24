@@ -1,9 +1,9 @@
 name: Build and push image
 on:
   push:
-    branches: [ "test" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "test" ]
+    branches: [ "main" ]
 
 jobs:
   build-and-push:
