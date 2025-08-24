@@ -10,8 +10,8 @@ jobs:
     name: Build image
     runs-on: ubuntu-latest
     env:
-      IMAGE_NAME: ubi-flask
-      REGISTRY: ghcr.io/major
+      IMAGE_NAME: snmpipe
+      REGISTRY: quay.io
     steps:
 
     - name: Clone the repository
@@ -26,17 +26,17 @@ jobs:
         containerfiles: |
           ./Containerfile
     
-    - name: Log in to the GitHub Container registry
-      uses: redhat-actions/podman-login@v1
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+    # - name: Log in to the GitHub Container registry
+    #   uses: redhat-actions/podman-login@v1
+    #   with:
+    #     registry: ${{ env.REGISTRY }}
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Push to GitHub Container Repository
-      id: push-to-ghcr
-      uses: redhat-actions/push-to-registry@v2
-      with:
-        image: ${{ steps.build-image.outputs.image }}
-        tags: ${{ steps.build-image.outputs.tags }}
-        registry: ${{ env.REGISTRY }}
+    # - name: Push to GitHub Container Repository
+    #   id: push-to-ghcr
+    #   uses: redhat-actions/push-to-registry@v2
+    #   with:
+    #     image: ${{ steps.build-image.outputs.image }}
+    #     tags: ${{ steps.build-image.outputs.tags }}
+    #     registry: ${{ env.REGISTRY }}
