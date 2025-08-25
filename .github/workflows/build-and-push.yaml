@@ -9,6 +9,8 @@ jobs:
   build-and-push:
     name: Build image
     runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: snmpipe
     steps:
 
     - name: Clone the repository
