@@ -9,25 +9,22 @@ jobs:
   build-and-push:
     name: Build image
     runs-on: ubuntu-latest
-    env:
-      IMAGE_NAME: snmpipe
-      REGISTRY: quay.io
     steps:
 
     - name: Clone the repository
       uses: actions/checkout@v2
     
-    - name: Buildah Action
+    - name: Buildah build image
       id: build-image
       uses: redhat-actions/buildah-build@v2
       with:
-        #image: ${{ env.IMAGE_NAME }}
-        image: snmpipe
+        image: ${{ env.IMAGE_NAME }}
         tags: latest ${{ github.sha }}
         containerfiles: |
           ./Containerfile
     
     - name: Log in to the Container registry
+      id: login-to-registry
       uses: redhat-actions/podman-login@v1
       with:
         registry: ${{ secrets.REGISTRY_NAME }}
