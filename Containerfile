@@ -45,8 +45,7 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
 # Copy executable and config file
-COPY --from=builder /go/bin/snmpipe /go/bin/snmpipe
-RUN chown appuser:appuser /go/bin/snmpipe
+COPY --from=builder --chown=appuser:appuser /go/bin/snmpipe /go/bin/snmpipe
 
 # Change to unprivileged user
 USER appuser:appuser
