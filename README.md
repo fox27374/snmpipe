@@ -117,7 +117,7 @@ podman buildx build --platform linux/amd64 -t snmpipe:0.2.0 .
 podman image rm $(podman images -f "dangling=true" -q)
 podman run -d --rm --name snmpipe -v $(pwd)/config.json:/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
 ```
-You can also use pre-build images from this [registry](quay.io/dkofler/snmpipe). The "latest" tag is always available.
+You can also use pre-build images from this [registry](https://quay.io/repository/dkofler/snmpipe?tab=tags). The "latest" tag is always available.
 ### Kubernetes
 TODO
 ## Troubleshooting
