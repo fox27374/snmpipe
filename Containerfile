@@ -54,4 +54,4 @@ WORKDIR /app
 USER ${USER}:${USER}
 
 # Run the snmpipe binary
-ENTRYPOINT ["snmpipe"]
+ENTRYPOINT ["./snmpipe"]
