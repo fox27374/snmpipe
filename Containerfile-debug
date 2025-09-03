@@ -37,7 +37,7 @@ FROM scratch
 
 LABEL org.opencontainers.image.title="snmpipe-debug" \
       org.opencontainers.image.description="SNMP poller and trap receiver that sends data to Splunk HEC - Debug version" \
-      org.opencontainers.image.version="0.1.0" \
+      org.opencontainers.image.version="0.2.0" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.authors="Daniel Kofler <fox27374@gmail.com>" \
       org.opencontainers.image.source="https://github.com/fox27374/snmpipe" \
@@ -59,5 +59,5 @@ COPY --from=builder --chown=${USER}:${USER} /app/ /app/
 USER ${USER}:${USER}
 
 # Run the snmpipe binary
-ENTRYPOINT ["/bin/sh"]
+ENTRYPOINT ["/app/snmpipe"]
 CMD []
