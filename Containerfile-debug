@@ -59,5 +59,4 @@ COPY --from=builder --chown=${USER}:${USER} /app/ /app/
 USER ${USER}:${USER}
 
 # Run the snmpipe binary
-ENTRYPOINT ["/app/snmpipe"]
-CMD []
+CMD ["/app/snmpipe"]
