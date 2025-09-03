@@ -6,14 +6,17 @@ RUN apk update && apk add --no-cache git
 # Create appuser
 ENV USER=snmpipe
 ENV UID=10001
+ENV BINDIR=/usr/local/bin
+ENV CONFDIR=/etc/snmpipe
+
 RUN adduser \
     --disabled-password \
     --gecos "" \
     --home "/nonexistent" \
     --shell "/sbin/nologin" \
     --no-create-home \
-    --uid "${UID}" \
-    "${USER}"
+    --uid $UID \
+    $USER
 
 # Change workdir and copy files
 WORKDIR $GOPATH/src/snmpipe/
@@ -25,13 +28,12 @@ COPY splunk.go .
 
 # Fetch dependencies and build the binary
 RUN go mod init snmpipe && go mod tidy
-RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /app/snmpipe
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o $BINDIR/snmpipe
+RUN mkdir $CONFDIR && chown $USER:$USER $BINDIR/snmpipe && chown $USER:$USER $CONFDIR
 
-# Create new container and copy binary file
-# as well as the group and passwd file
 FROM scratch
 
-LABEL org.opencontainers.image.title="snmpipe" \
+LABEL org.opencontainers.image.title="snmpipe-debug" \
       org.opencontainers.image.description="SNMP poller and trap receiver that sends data to Splunk HEC" \
       org.opencontainers.image.version="0.2.0" \
       org.opencontainers.image.licenses="GPL-3.0" \
@@ -40,17 +42,24 @@ LABEL org.opencontainers.image.title="snmpipe" \
       org.opencontainers.image.documentation="https://github.com/fox27374/snmpipe"
 
 ENV USER=snmpipe
+ENV BINDIR=/usr/local/bin
+ENV CONFDIR=/etc/snmpipe
 
-# Import the user and group files from the builder
+# Import the user and group files from builder
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
-# Copy executable
-COPY --from=builder --chown=${USER}:${USER} /app/ /app/
+# Copy executable and config directory
+COPY --from=builder $BINDIR/snmpipe $BINDIR/snmpipe
+COPY --from=builder $CONFDIR $CONFDIR
+
+# Import other tools from busybox
+COPY --from=builder /etc/passwd /etc/passwd
+COPY --from=builder /etc/group /etc/group
 
 # Change to unprivileged user
-USER ${USER}:${USER}
+USER $USER:$USER
 
 # Run the snmpipe binary
-ENTRYPOINT ["/app/snmpipe"]
+ENTRYPOINT ["$BINDIR/snmpipe"]
 CMD []
