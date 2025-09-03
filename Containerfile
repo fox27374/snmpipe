@@ -48,8 +48,10 @@ COPY --from=builder /etc/group /etc/group
 # Copy executable
 COPY --from=builder --chown=${USER}:${USER} /app/ /app/
 
+WORKDIR /app
+
 # Change to unprivileged user
 USER ${USER}:${USER}
 
 # Run the snmpipe binary
-ENTRYPOINT ["/app/snmpipe"]
+ENTRYPOINT ["snmpipe"]
