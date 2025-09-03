@@ -25,7 +25,7 @@ COPY splunk.go .
 
 # Fetch dependencies and build the binary
 RUN go mod init snmpipe && go mod tidy
-RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /app/snmpipe
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /snmpipe/snmpipe
 
 # Create new container and copy binary file
 # as well as the group and passwd file
@@ -45,18 +45,19 @@ LABEL org.opencontainers.image.title="snmpipe-debug" \
 
 ENV USER=snmpipe
 
-# Import the user and group files from the builder
+# Copy executable
+COPY --from=builder /snmpipe/ /snmpipe/
+
+# Import the user and group files from builder
+# and other tools frim busybox
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 COPY --from=busybox /bin/ /bin/
 COPY --from=busybox /lib/ /lib/
 COPY --from=busybox /lib64/ /lib64/
 
-# Copy executable
-COPY --from=builder --chown=${USER}:${USER} /app/ /app/
-
 # Change to unprivileged user
 USER ${USER}:${USER}
 
 # Run the snmpipe binary
-CMD ["/app/snmpipe"]
+CMD ["/snmpipe/snmpipe"]
