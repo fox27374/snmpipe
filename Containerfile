@@ -53,3 +53,4 @@ USER ${USER}:${USER}
 
 # Run the snmpipe binary
 ENTRYPOINT ["/app/snmpipe"]
+CMD []
