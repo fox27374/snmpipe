@@ -4,7 +4,7 @@ FROM golang:alpine3.22 AS builder
 RUN apk update && apk add --no-cache git
 
 # Create appuser
-ENV USER=appuser
+ENV USER=snmpipe
 ENV UID=10001
 RUN adduser \
     --disabled-password \
@@ -25,7 +25,7 @@ COPY splunk.go .
 
 # Fetch dependencies and build the binary
 RUN go mod init snmpipe && go mod tidy
-RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /bin/snmpipe
+RUN GOOS=linux CGO_ENABLED=0 go build -ldflags="-w -s" -o /app/snmpipe
 
 # Create new container and copy binary file
 # as well as the group and passwd file
@@ -38,18 +38,18 @@ LABEL org.opencontainers.image.title="snmpipe" \
       org.opencontainers.image.authors="Daniel Kofler <fox27374@gmail.com>" \
       org.opencontainers.image.source="https://github.com/fox27374/snmpipe" \
       org.opencontainers.image.documentation="https://github.com/fox27374/snmpipe"
-      
+
+ENV USER=snmpipe
 
 # Import the user and group files from the builder
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /etc/group /etc/group
 
-# Copy executable and config file
-# COPY --from=builder --chown=appuser:appuser /bin/snmpipe /go/bin/snmpipe
-COPY --from=builder --chown=appuser:appuser /bin/ /bin/
+# Copy executable
+COPY --from=builder --chown=${USER}:${USER} /app/ /app/
 
 # Change to unprivileged user
-USER appuser:appuser
+USER ${USER}:${USER}
 
 # Run the snmpipe binary
-ENTRYPOINT ["/bin/snmpipe"]
+ENTRYPOINT ["/app/snmpipe"]
