@@ -21,7 +21,7 @@ jobs:
       uses: redhat-actions/buildah-build@v2
       with:
         image: ${{ env.IMAGE_NAME }}
-        tags: latest ${{ github.sha }}
+        tags: 0.2.0
         containerfiles: |
           ./Containerfile
 
@@ -29,8 +29,8 @@ jobs:
       id: build-debug-image
       uses: redhat-actions/buildah-build@v2
       with:
-        image: ${{ env.IMAGE_NAME }}-debug
-        tags: latest ${{ github.sha }}
+        image: ${{ env.IMAGE_NAME }}
+        tags: debug
         containerfiles: |
           ./Containerfile-debug
     
@@ -47,13 +47,13 @@ jobs:
       uses: redhat-actions/push-to-registry@v2
       with:
         image: ${{ steps.build-image.outputs.image }}
-        tags: ${{ steps.build-image.outputs.tags }}
+        tags: ${{ steps.build-image.outputs.tags }} ${{ steps.build-debug-image.outputs.tags }}
         registry: ${{ secrets.REGISTRY_NAME }}
 
-    - name: Push debug to Container Repository
-      id: push-debug-to-registry
-      uses: redhat-actions/push-to-registry@v2
-      with:
-        image: ${{ steps.build-debug-image.outputs.image }}
-        tags: ${{ steps.build-debug-image.outputs.tags }}
-        registry: ${{ secrets.REGISTRY_NAME }}
+    # - name: Push debug to Container Repository
+    #   id: push-debug-to-registry
+    #   uses: redhat-actions/push-to-registry@v2
+    #   with:
+    #     image: ${{ steps.build-debug-image.outputs.image }}
+    #     tags: ${{ steps.build-debug-image.outputs.tags }}
+    #     registry: ${{ secrets.REGISTRY_NAME }}
