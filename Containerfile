@@ -61,5 +61,5 @@ COPY --from=builder /etc/group /etc/group
 USER $USER:$USER
 
 # Run the snmpipe binary
-ENTRYPOINT ["$BINDIR/snmpipe"]
+ENTRYPOINT ["/usr/local/bin/snmpipe"]
 CMD []
