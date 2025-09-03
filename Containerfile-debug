@@ -69,4 +69,4 @@ COPY --from=busybox /lib64/ /lib64/
 USER $USER:$USER
 
 # Run the snmpipe binary
-CMD ["$BINDIR/snmpipe"]
+CMD ["/usr/local/bin/snmpipe"]
