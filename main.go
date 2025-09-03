@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	configFile  = "config.json"
+	configFile  = "/etc/snmpipe/config.json"
 	snmpTimeout = 5
 )
 
