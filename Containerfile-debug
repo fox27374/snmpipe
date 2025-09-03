@@ -56,7 +56,7 @@ COPY --from=builder /etc/group /etc/group
 
 # Copy executable and config directory
 COPY --from=builder $BINDIR/snmpipe $BINDIR/snmpipe
-COPY --from=builder $CONFDIR/snmpipe $CONFDIR/snmpipe
+COPY --from=builder $CONFDIR $CONFDIR
 
 # Import other tools from busybox
 COPY --from=builder /etc/passwd /etc/passwd
