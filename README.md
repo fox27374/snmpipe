@@ -131,7 +131,9 @@ services:
   volumes:
     - ./config.json:/etc/snmpipe/config.json
 ```
-You can also use pre-build images from this [registry](https://quay.io/repository/dkofler/snmpipe?tab=tags). The "latest" tag is always available.
+You can also use pre-build images from this [registry](https://quay.io/repository/dkofler/snmpipe?tab=tags).
+Make sure to mount the **config.json** file to the path **/etc/snmpipe/config.json** as the path is hardcoded. The binary and the config directory are separated
+to be compatible with the native and the containerized installation.
 ### Kubernetes
 TODO
 ## Troubleshooting
