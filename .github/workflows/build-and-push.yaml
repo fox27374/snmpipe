@@ -23,7 +23,7 @@ jobs:
         image: ${{ env.IMAGE_NAME }}
         tags: 0.2.0
         containerfiles: |
-          ./Containerfile
+          ./container/Containerfile
 
     - name: Buildah build debug image
       id: build-debug-image
@@ -32,7 +32,7 @@ jobs:
         image: ${{ env.IMAGE_NAME }}
         tags: debug
         containerfiles: |
-          ./Containerfile-debug
+          ./container/Containerfile-debug
     
     - name: Log in to the Container registry
       id: login-to-registry
