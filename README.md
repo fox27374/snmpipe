@@ -115,7 +115,21 @@ podman machine init
 podman machine start
 podman buildx build --platform linux/amd64 -t snmpipe:0.2.0 .
 podman image rm $(podman images -f "dangling=true" -q)
-podman run -d --rm --name snmpipe -v $(pwd)/config.json:/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
+podman run -d --rm --name snmpipe -v $(pwd)/config.json:/etc/snmpipe/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
+```
+### Compose
+```yaml
+services:
+  snmpipe:
+    image: quay.io/repository/dkofler/snmpipe:0.2.0
+    # Alternatively build the image
+    # build: .
+  environment:
+    DEBUG: false
+  ports:
+    - "8162:8162"
+  volumes:
+    - ./config.json:/etc/snmpipe/config.json
 ```
 You can also use pre-build images from this [registry](https://quay.io/repository/dkofler/snmpipe?tab=tags). The "latest" tag is always available.
 ### Kubernetes
@@ -128,5 +142,6 @@ DEBUG=true go run *.go
 ```
 ### Container
 ```bash
-podman run -d --rm --name snmpipe -e DEBUG=true -v $(pwd)/config.json:/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
+podman run -d --rm --name snmpipe -e DEBUG=true -v $(pwd)/config.json:/etc/snmpipe/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
 ```
+
