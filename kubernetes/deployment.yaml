@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: snmpipe
+  name: snmpipe
+  namespace: snmpipe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: snmpipe
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: snmpipe
+    spec:
+      containers:
+      - name: snmpipe
+        image: quay.io/dkofler/snmpipe:0.2.0
+        volumeMounts:
+        - name: snmpipe-config
+          mountPath: "/etc/snmpipe"
+          readOnly: true
+        
+      volumes:
+      - name: snmpipe-config
+        configMap:
+          name: snmpipe-config
