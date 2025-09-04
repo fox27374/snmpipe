@@ -113,7 +113,7 @@ Install [Podman](https://podman.io/docs/installation)
 ```bash
 podman machine init
 podman machine start
-podman buildx build --platform linux/amd64 -t snmpipe:0.2.0 .
+podman buildx build --platform linux/amd64 -t snmpipe:0.2.0 -f container/Containerfile
 podman image rm $(podman images -f "dangling=true" -q)
 podman run -d --rm --name snmpipe -v $(pwd)/config.json:/etc/snmpipe/config.json -p 8162:8162/udp localhost/snmpipe:0.2.0
 ```
@@ -123,7 +123,7 @@ services:
   snmpipe:
     image: quay.io/repository/dkofler/snmpipe:0.2.0
     # Alternatively build the image
-    # build: .
+    # build: container/Containerfile
   environment:
     DEBUG: false
   ports:
