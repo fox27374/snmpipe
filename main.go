@@ -57,7 +57,15 @@ func init() {
 
 func main() {
 	logger.Info("Application started")
-	err := loadConfig()
+	logger.Info("Checking config file")
+	configFileLocation, err := checkConfigFile()
+	if err != nil {
+		logger.Error("Config file not found", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	logger.Info("Loading config file")
+	err = loadConfig(configFileLocation)
 	if err != nil {
 		logger.Error("Failed to load config", slog.Any("error", err))
 		os.Exit(1)

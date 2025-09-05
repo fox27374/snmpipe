@@ -71,9 +71,9 @@ type SplunkHecEvent struct {
 // Loads the configuration from the config file
 // and sets the default values for every device
 // if the value in the device config does not exist
-func loadConfig() error {
+func loadConfig(configFileLocation string) error {
 	// Load config file and unmarshal it
-	configFileData, err := readConfigFile()
+	configFileData, err := readConfigFile(configFileLocation)
 	if err != nil {
 		return fmt.Errorf("cannot not read config file: %w", err)
 	}
@@ -151,11 +151,29 @@ func loadConfig() error {
 }
 
 // Loads the configuration from the config file
-func readConfigFile() ([]byte, error) {
-	configData, err := os.ReadFile(configFile)
+func readConfigFile(configFileLocation string) ([]byte, error) {
+	configData, err := os.ReadFile(configFileLocation)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to read config file", slog.Any("error", err))
 	}
 
 	return configData, nil
+}
+
+// Check if the config file exists either in the same folder
+// or in /etc/snmpipe to maintain compatibility between the local
+// installation and the containerized version
+func checkConfigFile() (string, error) {
+	// Check for the config file in the standard system path first.
+	if _, err := os.Stat(configFile); err == nil {
+		return configFile, nil
+	}
+
+	// If not found, check for the config file in the current directory.
+	if _, err := os.Stat("./config.json"); err == nil {
+		return "./config.json", nil
+	}
+
+	// If neither file exists, return a clear and specific error.
+	return "", fmt.Errorf("configuration file not found in '%s' or local folder", configFile)
 }
