@@ -9,8 +9,8 @@ SNMP poller and trap receiver that forwards data to Splunk HEC endpoint.
 * Data is send as batch to Splunk HEC
 * Configurable index and sourcetype
 * Structured logging in JSON format
-* Implementation with the well-known gosnmp library
-* Trap receiver and pollin modules can be enabled/disabled
+* Implementation using the well-known gosnmp library
+* Trap receiver and polling modules can be enabled/disabled
 ## Limitations
 * For SNMPv3, the auth (SHA) and priv (AES) protocols are currently hardcoded
 * The certificates for HTTPS HEC enspoints are ignored
