@@ -175,5 +175,5 @@ func checkConfigFile() (string, error) {
 	}
 
 	// If neither file exists, return a clear and specific error.
-	return "", fmt.Errorf("configuration file not found in '%s' or local folder", configFile)
+	return "", fmt.Errorf("Config file not found in '%s' or local folder", configFile)
 }
