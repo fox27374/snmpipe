@@ -124,11 +124,11 @@ services:
     image: quay.io/repository/dkofler/snmpipe:0.2.0
     # Alternatively build the image
     # build: container/Containerfile
-  environment:
-    DEBUG: false
-  ports:
+    environment:
+    - DEBUG=false
+    ports:
     - "8162:8162"
-  volumes:
+    volumes:
     - ./config.json:/etc/snmpipe/config.json
 ```
 You can also use pre-build images from this [registry](https://quay.io/repository/dkofler/snmpipe?tab=tags).
