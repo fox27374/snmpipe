@@ -135,7 +135,18 @@ You can also use pre-build images from this [registry](https://quay.io/repositor
 Make sure to mount the **config.json** file to the path **/etc/snmpipe/config.json** as the path is hardcoded. The binary and the config directory are separated
 to be compatible with the native and the containerized installation.
 ### Kubernetes
-TODO
+Modify the **configmap.yaml** file in the kubernetes directory and change the settings to your needs. You can also create a new configmap by modifying the **config.json** file
+and creating a configmap that includes this file.
+```bash
+kubectl create configmap snmpipe -n snmpipe --from-file ./config.json --dry-run=client -o yaml > kubernetes/configmap.yaml
+```
+Depending on the setup, the service can either be of type nodeport or type loadbalancer. In this example, I use an external loadbalancer to get an IP
+address. Modify the **service.yaml** file accordingly. Make sure the protocol is UDP.
+Now you can apply the yaml files:
+```bash
+cd kubernetes
+kubectl apply -f .
+```
 ## Troubleshooting
 In order to turn on debug logging, the **DEBUG** environmental variable set to **true** can be passed to the application.
 ### Binary
